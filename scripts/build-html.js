@@ -27,6 +27,10 @@ async function buildHTML() {
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="x-build" content="x-hotspot-v2">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>热点聚合 - Trending Hub</title>
   <meta name="description" content="实时聚合 X/Twitter、TikTok、Bilibili、YouTube、Instagram、微博等平台热点">
@@ -294,19 +298,31 @@ async function buildHTML() {
     }
 
     .x-entry a {
-      display: inline-block;
-      padding: 0.5rem 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.7rem 1.4rem;
       border: 1px solid var(--twitter);
-      border-radius: 20px;
-      color: var(--text-primary);
+      border-radius: 22px;
+      color: white;
       text-decoration: none;
-      background: var(--bg-card);
-      font-size: 0.9rem;
+      background: var(--twitter);
+      font-size: 1rem;
+      font-weight: 700;
+      box-shadow: 0 0 0 3px rgba(29,161,242,0.25);
     }
 
     .x-entry a:hover {
-      background: var(--twitter);
+      background: #0d8ddb;
       color: white;
+    }
+
+    a.tab.x-hot-tab {
+      background: var(--twitter);
+      border-color: var(--twitter);
+      color: white;
+      font-weight: 700;
+      text-decoration: none;
     }
 
     .pulse {
@@ -350,11 +366,12 @@ async function buildHTML() {
       <span class="pulse"></span>
       每30分钟自动刷新
     </div>
-    <p class="x-entry"><a href="x.html">𝕏 热点板块</a></p>
+    <p class="x-entry"><a href="x.html">𝕏 热点 · 事件级（点这里）</a></p>
   </header>
   
   <nav class="tabs">
     <button class="tab active" data-platform="all">全部</button>
+    <a class="tab x-hot-tab" href="x.html">𝕏 热点</a>
     ${Object.entries(data.platforms).map(([key, platform]) => `
     <button class="tab" data-platform="${key}">${platform.icon} ${platform.name}</button>
     `).join('')}
