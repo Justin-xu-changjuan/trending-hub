@@ -1,3 +1,4 @@
+// Copy data/x-trending.json into public/ on each build (logged-in scrape refresh).
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
