@@ -239,6 +239,13 @@ async function fetchDouyin(rssHub) {
   }));
 }
 
+function isChineseTitle(title) {
+  const t = title || '';
+  if (/[\u3040-\u30ff]/.test(t)) return false; // 假名 = 日文
+  if (/[\uac00-\ud7af]/.test(t)) return false; // 韩文
+  return /[\u4e00-\u9fff]/.test(t);
+}
+
 // 抓取 X/Twitter 趋势 (通过公开页面)
 async function fetchTwitterTrends() {
   // 使用 trends24.in 抓取 Twitter 趋势
@@ -285,7 +292,9 @@ async function fetchTwitterTrends() {
       });
     }
     
-    return trends;
+    return trends
+      .filter(t => isChineseTitle(t.title))
+      .map((t, i) => ({ ...t, rank: i + 1 }));
   } catch (error) {
     console.error('Failed to fetch Twitter trends:', error.message);
     return [];
@@ -511,7 +520,7 @@ async function main() {
   console.log('🚀 Starting to fetch trending topics...');
   console.log(`📅 ${new Date().toISOString()}`);
   
-  // 确保数据目录存在
+  // 硫4保数据目录存在
   await fs.mkdir(DATA_DIR, { recursive: true });
   
   // 获取可用的 RSSHub
