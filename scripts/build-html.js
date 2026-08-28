@@ -22,6 +22,18 @@ async function buildHTML() {
       platforms: {}
     };
   }
+
+  function isChineseTitle(title) {
+    const t = title || '';
+    if (/[\u3040-\u30ff]/.test(t)) return false;
+    if (/[\uac00-\ud7af]/.test(t)) return false;
+    return /[\u4e00-\u9fff]/.test(t);
+  }
+  if (data.platforms?.twitter?.items) {
+    data.platforms.twitter.items = data.platforms.twitter.items
+      .filter(item => isChineseTitle(item.title))
+      .map((item, i) => ({ ...item, rank: i + 1 }));
+  }
   
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
