@@ -378,12 +378,12 @@ async function buildHTML() {
       <span class="pulse"></span>
       每6小时自动刷新
     </div>
-    <p class="x-entry"><a href="x.html">ℓ 热点 · 事件级（点这里）</a></p>
+    <p class="x-entry"><a href="x.html">𝕏 热点 · 事件级（点这里）</a></p>
   </header>
   
   <nav class="tabs">
     <button class="tab active" data-platform="all">全部</button>
-    <a class="tab x-hot-tab" href="x.html">ℓ 热点</a>
+    <a class="tab x-hot-tab" href="x.html">𝕏 热点</a>
     ${Object.entries(data.platforms).map(([key, platform]) => `
     <button class="tab" data-platform="${key}">${platform.icon} ${platform.name}</button>
     `).join('')}
