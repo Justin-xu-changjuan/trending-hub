@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X 热点 - Trending Hub</title>
+  <meta name="description" content="独立 X 热点事件卡片，不与其他平台混排">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>𝕏</text></svg>">
+  <style>
+    :root {
+      --bg-primary: #0f0f0f;
+      --bg-secondary: #1a1a1a;
+      --bg-card: #242424;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --accent: #ff6b35;
+      --border: #333333;
+      --twitter: #1da1f2;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+      padding: 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .back { margin-bottom: 0.75rem; }
+    .back a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; }
+    .back a:hover { color: var(--accent); }
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--twitter) 0%, #6ec8ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header .subtitle { color: var(--text-secondary); font-size: 0.9rem; }
+    .last-updated { margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-primary); }
+    .last-updated span { color: var(--accent); }
+    .sort { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .tab:hover { border-color: var(--twitter); color: var(--text-primary); }
+    .tab.active { background: var(--twitter); border-color: var(--twitter); color: white; }
+    .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+    .event-card {
+      display: block;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      text-decoration: none;
+      color: inherit;
+      border-left: 4px solid var(--twitter);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .event-card:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
+    .event-card h2 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+    .summary { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.75rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); }
+    .status {
+      background: var(--bg-secondary);
+      border: 1px solid var(--twitter);
+      color: var(--text-primary);
+      padding: 0.15rem 0.6rem;
+      border-radius: 10px;
+    }
+    .why { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
+    .accounts { font-size: 0.85rem; color: var(--twitter); margin-bottom: 0.5rem; }
+    .metrics { font-size: 0.8rem; color: var(--text-secondary); }
+    .no-data { padding: 3rem 2rem; text-align: center; color: var(--text-secondary); }
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 1.5rem; }
+      .container { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <p class="back"><a href="./">← 热点聚合</a></p>
+    <h1>𝕏 热点</h1>
+    <p class="subtitle">同一事件一张主卡片，点击打开 X 原帖</p>
+    <p class="last-updated">更新时间：<span id="updatedAt">读取中…</span></p>
+    <div class="sort">
+      <button type="button" class="tab active" data-sort="newest">最新</button>
+      <button type="button" class="tab" data-sort="heat">热度</button>
+    </div>
+  </header>
+  <main class="container">
+    <div id="list"></div>
+  </main>
+  <footer class="footer">
+    <p>数据来自独立 X 热点 JSON，不与首页其他平台混排</p>
+    <p><a href="./">返回热点聚合</a></p>
+  </footer>
+  <script>
+    const TIME_FMT = { timeZone: 'Asia/Shanghai', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    function escapeHtml(text) {
+      return String(text ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    function formatTime(value) {
+      if (!value) return '';
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toLocaleString('zh-CN', TIME_FMT);
+    }
+    function heat(item) {
+      const m = item.metrics || {};
+      if (typeof m.score === 'number') return m.score;
+      if (typeof m.heat === 'number') return m.heat;
+      return (m.likes || 0) + (m.reposts || 0) + (m.replies || 0) + (m.views || 0) / 100;
+    }
+    function eventKey(item) {
+      return (item.title || '').trim() || item.url || JSON.stringify(item);
+    }
+    function dedupe(items) {
+      const map = new Map();
+      for (const item of items) {
+        const key = eventKey(item);
+        if (!map.has(key)) map.set(key, item);
+      }
+      return [...map.values()];
+    }
+    function sortItems(items, mode) {
+      const copy = items.slice();
+      if (mode === 'heat') {
+        copy.sort((a, b) => heat(b) - heat(a));
+      } else {
+        copy.sort((a, b) => {
+          const ta = Date.parse(a.fetchedAt || a.startedAt || '') || 0;
+          const tb = Date.parse(b.fetchedAt || b.startedAt || '') || 0;
+          return tb - ta;
+        });
+      }
+      return copy;
+    }
+    function metricsLine(item) {
+      const m = item.metrics || {};
+      const parts = [];
+      if (m.score != null) parts.push('分数 ' + m.score);
+      if (m.heat != null) parts.push('热度 ' + m.heat);
+      if (m.likes != null) parts.push('赞 ' + m.likes);
+      if (m.reposts != null) parts.push('转发 ' + m.reposts);
+      if (m.replies != null) parts.push('回复 ' + m.replies);
+      if (m.views != null) parts.push('浏览 ' + m.views);
+      return parts.join(' · ');
+    }
+    function render(items, mode) {
+      const list = document.getElementById('list');
+      const unique = dedupe(items);
+      const sorted = sortItems(unique, mode);
+      if (!sorted.length) {
+        list.innerHTML = '<div class="no-data">暂无 X 热点，等待写入 data/x-trending.json</div>';
+        return;
+      }
+      list.innerHTML = sorted.map(item => {
+        const url = item.url || '#';
+        const accounts = Array.isArray(item.accounts) ? item.accounts.filter(Boolean).join(' ') : (item.accounts || '');
+        const started = formatTime(item.startedAt);
+        const fetched = formatTime(item.fetchedAt);
+        const metaBits = [
+          item.status ? '<span class="status">' + escapeHtml(item.status) + '</span>' : '',
+          started ? '<span>开始 ' + escapeHtml(started) + '</span>' : '',
+          fetched ? '<span>抓取 ' + escapeHtml(fetched) + '</span>' : ''
+        ].filter(Boolean).join('');
+        const metrics = metricsLine(item);
+        return (
+          '<a class="event-card" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
+            '<h2>' + escapeHtml(item.title || '未命名事件') + '</h2>' +
+            (item.summary ? '<p class="summary">' + escapeHtml(item.summary) + '</p>' : '') +
+            (metaBits ? '<div class="meta">' + metaBits + '</div>' : '') +
+            (item.why ? '<p class="why">' + escapeHtml(item.why) + '</p>' : '') +
+            (accounts ? '<p class="accounts">' + escapeHtml(accounts) + '</p>' : '') +
+            (metrics ? '<p class="metrics">' + escapeHtml(metrics) + '</p>' : '') +
+          '</a>'
+        );
+      }).join('');
+    }
+    let allItems = [];
+    let sortMode = 'newest';
+    document.querySelectorAll('.tab[data-sort]').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab[data-sort]').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        sortMode = tab.dataset.sort;
+        render(allItems, sortMode);
+      });
+    });
+    fetch('./x-trending.json', { cache: 'no-store' })
+      .then(res => {
+        if (!res.ok) throw new Error(res.status);
+        return res.json();
+      })
+      .then(data => {
+        const stamp = data && data.updatedAt;
+        document.getElementById('updatedAt').textContent = stamp ? formatTime(stamp) : '尚未更新';
+        allItems = Array.isArray(data && data.items) ? data.items : [];
+        render(allItems, sortMode);
+      })
+      .catch(() => {
+        document.getElementById('updatedAt').textContent = '读取失败';
+        document.getElementById('list').innerHTML = '<div class="no-data">无法读取 X 热点数据</div>';
+      });
+  </script>
+</body>
+</html>
