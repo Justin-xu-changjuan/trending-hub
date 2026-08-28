@@ -5,105 +5,159 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="x-build" content="x-hotspot-v2">
+  <meta name="x-build" content="x-hotspot-v4">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>X 热点 - Trending Hub</title>
-  <meta name="description" content="独立 X 热点事件卡片，不与其他平台混排">
+  <meta name="description" content="Grok 列表式 X 热点：作者、摘要、互动、原帖链接">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>𝕏</text></svg>">
   <style>
     :root {
-      --bg-primary: #0f0f0f;
-      --bg-secondary: #1a1a1a;
-      --bg-card: #242424;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0a0;
-      --accent: #ff6b35;
-      --border: #333333;
-      --twitter: #1da1f2;
+      --bg-primary: #000000;
+      --bg-secondary: #0a0a0a;
+      --bg-card: #121212;
+      --text-primary: #e7e9ea;
+      --text-secondary: #71767b;
+      --accent: #1d9bf0;
+      --border: #2f3336;
+      --heart: #f91880;
+      --repost: #00ba7c;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
-      line-height: 1.6;
+      line-height: 1.5;
       min-height: 100vh;
     }
     .header {
-      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-      padding: 2rem;
+      background: rgba(0,0,0,0.75);
+      padding: 1.25rem 1rem 1rem;
       text-align: center;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
     }
-    .back { margin-bottom: 0.75rem; }
+    .back { margin-bottom: 0.5rem; }
     .back a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; }
     .back a:hover { color: var(--accent); }
     .header h1 {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--twitter) 0%, #6ec8ff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+      color: var(--text-primary);
     }
-    .header .subtitle { color: var(--text-secondary); font-size: 0.9rem; }
-    .last-updated { margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-primary); }
+    .header .subtitle { color: var(--text-secondary); font-size: 0.85rem; }
+    .last-updated { margin-top: 0.4rem; font-size: 0.85rem; color: var(--text-secondary); }
     .last-updated span { color: var(--accent); }
-    .sort { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+    .sort { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.85rem; }
     .tab {
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.9rem;
       border: 1px solid var(--border);
-      border-radius: 20px;
-      background: var(--bg-card);
+      border-radius: 999px;
+      background: transparent;
       color: var(--text-secondary);
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
-    .tab:hover { border-color: var(--twitter); color: var(--text-primary); }
-    .tab.active { background: var(--twitter); border-color: var(--twitter); color: white; }
-    .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
-    .event-card {
+    .tab:hover { border-color: var(--accent); color: var(--text-primary); }
+    .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .post-card {
       display: block;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1rem;
+      padding: 1rem 1rem 0.9rem;
+      border-bottom: 1px solid var(--border);
       text-decoration: none;
       color: inherit;
-      border-left: 4px solid var(--twitter);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: background 0.15s ease;
     }
-    .event-card:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
-    .event-card h2 { font-size: 1.15rem; margin-bottom: 0.4rem; }
-    .summary { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.75rem; }
-    .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--text-secondary); }
-    .status {
-      background: var(--bg-secondary);
-      border: 1px solid var(--twitter);
+    .post-card:hover { background: rgba(255,255,255,0.03); }
+    .author-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.55rem;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1d9bf0, #7856ff);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    .author-meta { min-width: 0; flex: 1; }
+    .author-name-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem;
+      line-height: 1.2;
+    }
+    .display-name {
+      font-weight: 700;
+      font-size: 0.95rem;
       color: var(--text-primary);
-      padding: 0.15rem 0.6rem;
-      border-radius: 10px;
     }
-    .why { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem; }
-    .accounts { font-size: 0.85rem; color: var(--twitter); margin-bottom: 0.5rem; }
-    .metrics { font-size: 0.8rem; color: var(--text-secondary); }
-    .no-data { padding: 3rem 2rem; text-align: center; color: var(--text-secondary); }
+    .handle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .time-bit {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .post-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 0.35rem;
+      line-height: 1.35;
+    }
+    .summary {
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      margin-bottom: 0.65rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.1rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+    .metrics span { display: inline-flex; align-items: center; gap: 0.3rem; }
+    .metrics .likes { color: var(--heart); }
+    .metrics .reposts { color: var(--repost); }
+    .metrics .views { color: var(--text-secondary); }
+    .status-pill {
+      display: inline-block;
+      margin-top: 0.45rem;
+      font-size: 0.75rem;
+      color: var(--accent);
+      border: 1px solid rgba(29,155,240,0.45);
+      border-radius: 999px;
+      padding: 0.1rem 0.55rem;
+    }
+    .no-data { padding: 3rem 1.5rem; text-align: center; color: var(--text-secondary); }
     .footer {
       text-align: center;
-      padding: 2rem;
+      padding: 1.5rem 1rem 2rem;
       color: var(--text-secondary);
-      font-size: 0.85rem;
-      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
     }
     .footer a { color: var(--accent); text-decoration: none; }
     @media (max-width: 768px) {
-      .header h1 { font-size: 1.5rem; }
-      .container { padding: 1rem; }
+      .header h1 { font-size: 1.25rem; }
+      .post-card { padding: 0.9rem 0.85rem; }
     }
   </style>
 </head>
@@ -111,7 +165,7 @@
   <header class="header">
     <p class="back"><a href="./">← 热点聚合</a></p>
     <h1>𝕏 热点</h1>
-    <p class="subtitle">同一事件一张主卡片，点击打开 X 原帖</p>
+    <p class="subtitle">Grok 列表式：作者 · 摘要 · 互动 · 原帖</p>
     <p class="last-updated">更新时间：<span id="updatedAt">读取中…</span></p>
     <div class="sort">
       <button type="button" class="tab active" data-sort="newest">最新</button>
@@ -122,11 +176,12 @@
     <div id="list"></div>
   </main>
   <footer class="footer">
-    <p>数据来自独立 X 热点 JSON，不与首页其他平台混排</p>
+    <p>每条卡片链接到具体 status 帖；数据来自 x-trending.json</p>
     <p><a href="./">返回热点聚合</a></p>
   </footer>
   <script>
     const TIME_FMT = { timeZone: 'Asia/Shanghai', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+
     function escapeHtml(text) {
       return String(text ?? '')
         .replace(/&/g, '&amp;')
@@ -135,21 +190,64 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
+
     function formatTime(value) {
       if (!value) return '';
       const d = new Date(value);
       if (Number.isNaN(d.getTime())) return '';
       return d.toLocaleString('zh-CN', TIME_FMT);
     }
+
+    function formatCount(n) {
+      if (n == null || n === '') return '';
+      const num = Number(n);
+      if (!Number.isFinite(num)) return String(n);
+      if (num >= 100000000) return (num / 100000000).toFixed(1).replace(/\.0$/, '') + '亿';
+      if (num >= 10000) return (num / 10000).toFixed(1).replace(/\.0$/, '') + '万';
+      if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+      return String(Math.round(num));
+    }
+
+    function normalizeHandle(raw) {
+      if (!raw) return '';
+      const s = String(raw).trim();
+      if (!s) return '';
+      return s.startsWith('@') ? s : '@' + s.replace(/^https?:\/\/(x|twitter)\.com\//i, '').split(/[/?#]/)[0];
+    }
+
+    function handleFromUrl(url) {
+      const m = String(url || '').match(/https?:\/\/(?:x|twitter)\.com\/([^\/?#]+)\/status\//i);
+      return m ? normalizeHandle(m[1]) : '';
+    }
+
+    function isStatusUrl(url) {
+      return /https?:\/\/(?:x|twitter)\.com\/[^\/?#]+\/status\/\d+/i.test(String(url || ''));
+    }
+
+    function resolveAuthor(item) {
+      const a = item.author && typeof item.author === 'object' ? item.author : {};
+      let handle = normalizeHandle(
+        item.authorHandle || a.handle || a.username || item.handle || item.username ||
+        (item.metrics && item.metrics.source_post) || handleFromUrl(item.url) ||
+        (Array.isArray(item.accounts) ? item.accounts[0] : '') || item.accounts
+      );
+      let name = item.authorName || a.name || a.displayName || item.displayName || '';
+      if (!name && handle) name = handle.replace(/^@/, '');
+      return { name: name || '未知作者', handle: handle || '' };
+    }
+
     function heat(item) {
       const m = item.metrics || {};
       if (typeof m.score === 'number') return m.score;
       if (typeof m.heat === 'number') return m.heat;
-      return (m.likes || 0) + (m.reposts || 0) + (m.replies || 0) + (m.views || 0) / 100;
+      return (m.likes || 0) + (m.reposts || 0) * 2 + (m.replies || 0) + (m.views || 0) / 100;
     }
+
     function eventKey(item) {
-      return (item.title || '').trim() || item.url || JSON.stringify(item);
+      return (item.url && isStatusUrl(item.url) ? item.url : '') ||
+        (item.title || '').trim() || JSON.stringify(item);
     }
+
     function dedupe(items) {
       const map = new Map();
       for (const item of items) {
@@ -158,6 +256,7 @@
       }
       return [...map.values()];
     }
+
     function sortItems(items, mode) {
       const copy = items.slice();
       if (mode === 'heat') {
@@ -171,48 +270,50 @@
       }
       return copy;
     }
-    function metricsLine(item) {
+
+    function metricsHtml(item) {
       const m = item.metrics || {};
-      const parts = [];
-      if (m.score != null) parts.push('分数 ' + m.score);
-      if (m.heat != null) parts.push('热度 ' + m.heat);
-      if (m.likes != null) parts.push('赞 ' + m.likes);
-      if (m.reposts != null) parts.push('转发 ' + m.reposts);
-      if (m.replies != null) parts.push('回复 ' + m.replies);
-      if (m.views != null) parts.push('浏览 ' + m.views);
-      return parts.join(' · ');
+      const bits = [];
+      if (m.likes != null) bits.push('<span class="likes">♡ ' + escapeHtml(formatCount(m.likes)) + '</span>');
+      if (m.reposts != null) bits.push('<span class="reposts">↻ ' + escapeHtml(formatCount(m.reposts)) + '</span>');
+      if (m.views != null) bits.push('<span class="views">▣ ' + escapeHtml(formatCount(m.views)) + '</span>');
+      if (m.replies != null) bits.push('<span>💬 ' + escapeHtml(formatCount(m.replies)) + '</span>');
+      return bits.length ? '<div class="metrics">' + bits.join('') + '</div>' : '';
     }
+
     function render(items, mode) {
       const list = document.getElementById('list');
-      const unique = dedupe(items);
-      const sorted = sortItems(unique, mode);
+      const sorted = sortItems(dedupe(items), mode);
       if (!sorted.length) {
         list.innerHTML = '<div class="no-data">暂无 X 热点，等待写入 data/x-trending.json</div>';
         return;
       }
       list.innerHTML = sorted.map(item => {
-        const url = item.url || '#';
-        const accounts = Array.isArray(item.accounts) ? item.accounts.filter(Boolean).join(' ') : (item.accounts || '');
-        const started = formatTime(item.startedAt);
-        const fetched = formatTime(item.fetchedAt);
-        const metaBits = [
-          item.status ? '<span class="status">' + escapeHtml(item.status) + '</span>' : '',
-          started ? '<span>开始 ' + escapeHtml(started) + '</span>' : '',
-          fetched ? '<span>抓取 ' + escapeHtml(fetched) + '</span>' : ''
-        ].filter(Boolean).join('');
-        const metrics = metricsLine(item);
+        const author = resolveAuthor(item);
+        const url = isStatusUrl(item.url) ? item.url : (item.url || '#');
+        const initial = (author.name || author.handle || 'X').replace(/^@/, '').charAt(0).toUpperCase();
+        const timeBit = item.relativeTime || formatTime(item.fetchedAt) || item.startedAt || '';
         return (
-          '<a class="event-card" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
-            '<h2>' + escapeHtml(item.title || '未命名事件') + '</h2>' +
+          '<a class="post-card" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
+            '<div class="author-row">' +
+              '<div class="avatar" aria-hidden="true">' + escapeHtml(initial) + '</div>' +
+              '<div class="author-meta">' +
+                '<div class="author-name-line">' +
+                  '<span class="display-name">' + escapeHtml(author.name) + '</span>' +
+                  (author.handle ? '<span class="handle">' + escapeHtml(author.handle) + '</span>' : '') +
+                  (timeBit ? '<span class="time-bit">· ' + escapeHtml(timeBit) + '</span>' : '') +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<h2 class="post-title">' + escapeHtml(item.title || '未命名') + '</h2>' +
             (item.summary ? '<p class="summary">' + escapeHtml(item.summary) + '</p>' : '') +
-            (metaBits ? '<div class="meta">' + metaBits + '</div>' : '') +
-            (item.why ? '<p class="why">' + escapeHtml(item.why) + '</p>' : '') +
-            (accounts ? '<p class="accounts">' + escapeHtml(accounts) + '</p>' : '') +
-            (metrics ? '<p class="metrics">' + escapeHtml(metrics) + '</p>' : '') +
+            metricsHtml(item) +
+            (item.status ? '<span class="status-pill">' + escapeHtml(item.status) + '</span>' : '') +
           '</a>'
         );
       }).join('');
     }
+
     let allItems = [];
     let sortMode = 'newest';
     document.querySelectorAll('.tab[data-sort]').forEach(tab => {
@@ -223,15 +324,25 @@
         render(allItems, sortMode);
       });
     });
+
     fetch('./x-trending.json', { cache: 'no-store' })
       .then(res => {
         if (!res.ok) throw new Error(res.status);
         return res.json();
       })
       .then(data => {
-        const stamp = data && data.updatedAt;
+        let items = [];
+        let stamp = null;
+        if (Array.isArray(data)) {
+          items = data;
+          const times = data.map(x => Date.parse(x && x.fetchedAt || '')).filter(n => Number.isFinite(n));
+          if (times.length) stamp = new Date(Math.max(...times)).toISOString();
+        } else if (data && typeof data === 'object') {
+          stamp = data.updatedAt || null;
+          items = Array.isArray(data.items) ? data.items : [];
+        }
         document.getElementById('updatedAt').textContent = stamp ? formatTime(stamp) : '尚未更新';
-        allItems = Array.isArray(data && data.items) ? data.items : [];
+        allItems = items;
         render(allItems, sortMode);
       })
       .catch(() => {
