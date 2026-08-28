@@ -288,6 +288,26 @@ async function buildHTML() {
       margin-top: 1rem;
     }
     
+    .x-entry {
+      margin-top: 1rem;
+    }
+
+    .x-entry a {
+      display: inline-block;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--twitter);
+      border-radius: 20px;
+      color: var(--text-primary);
+      text-decoration: none;
+      background: var(--bg-card);
+      font-size: 0.9rem;
+    }
+
+    .x-entry a:hover {
+      background: var(--twitter);
+      color: white;
+    }
+
     .pulse {
       width: 8px;
       height: 8px;
@@ -329,6 +349,7 @@ async function buildHTML() {
       <span class="pulse"></span>
       每30分钟自动刷新
     </div>
+    <p class="x-entry"><a href="x.html">𝕏 热点板块</a></p>
   </header>
   
   <nav class="tabs">
@@ -408,7 +429,17 @@ async function buildHTML() {
   // 写入 HTML
   const outputPath = path.join(PUBLIC_DIR, 'index.html');
   await fs.writeFile(outputPath, html, 'utf-8');
-  
+
+  const xSrc = path.join(DATA_DIR, 'x-trending.json');
+  const xDest = path.join(PUBLIC_DIR, 'x-trending.json');
+  try {
+    await fs.copyFile(xSrc, xDest);
+    console.log(`✅ Copied X JSON: ${xDest}`);
+  } catch {
+    await fs.writeFile(xDest, JSON.stringify({ updatedAt: null, items: [] }, null, 2), 'utf-8');
+    console.log(`✅ Wrote empty X JSON: ${xDest}`);
+  }
+
   console.log(`✅ HTML built: ${outputPath}`);
 }
 
