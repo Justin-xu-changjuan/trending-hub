@@ -376,7 +376,7 @@ async function buildHTML() {
     <p class="last-updated">最后更新: <span id="lastUpdated">${new Date(data.lastUpdated).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</span></p>
     <div class="refresh-notice">
       <span class="pulse"></span>
-      每30分钟自动刷新
+      每6小时自动刷新
     </div>
     <p class="x-entry"><a href="x.html">𝕏 热点 · 事件级（点这里）</a></p>
   </header>
@@ -436,10 +436,10 @@ async function buildHTML() {
       });
     });
     
-    // 自动刷新页面 (30分钟)
+    // 自动刷新页面 (6小时)
     setTimeout(() => {
       location.reload();
-    }, 30 * 60 * 1000);
+    }, 6 * 60 * 60 * 1000);
   </script>
 </body>
 </html>`;

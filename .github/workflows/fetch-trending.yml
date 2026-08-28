@@ -2,7 +2,7 @@ name: Fetch Trending Topics
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
   workflow_call:
   push:
