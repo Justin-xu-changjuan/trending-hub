@@ -36,7 +36,7 @@ jobs:
               last_s = json.load(f)["lastUpdated"]
           last = datetime.fromisoformat(last_s.replace("Z", "+00:00"))
           age_s = (datetime.now(timezone.utc) - last).total_seconds()
-          stale = "true" if age_s >= 2 * 3600 else "false"
+          stale = "true" if age_s >= 7 * 3600 else "false"
           print(f"lastUpdated={last_s} age_hours={age_s/3600:.2f} stale={stale}")
           with open(os.environ["GITHUB_OUTPUT"], "a") as out:
               out.write(f"lastUpdated={last_s}\n")
@@ -68,7 +68,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
-          gh label create stale-data --color D93F0B --description "Trending data older than 2 hours" 2>/dev/null || true
+          gh label create stale-data --color D93F0B --description "Trending data older than 7 hours" 2>/dev/null || true
 
           AFTER=$(curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/data/trending.json" | python3 -c "import json,sys; print(json.load(sys.stdin)['lastUpdated'])")
           export AFTER
@@ -76,7 +76,7 @@ jobs:
           from datetime import datetime, timezone
           import os
           last = datetime.fromisoformat(os.environ['AFTER'].replace('Z', '+00:00'))
-          fresh = (datetime.now(timezone.utc) - last).total_seconds() < 2 * 3600
+          fresh = (datetime.now(timezone.utc) - last).total_seconds() < 7 * 3600
           print('true' if fresh and os.environ.get('CATCHUP_RESULT') == 'success' else 'false')
           ")
 
