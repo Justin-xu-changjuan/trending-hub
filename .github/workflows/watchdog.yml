@@ -1,0 +1,107 @@
+name: Watchdog
+
+on:
+  schedule:
+    - cron: '20 */2 * * *'
+  workflow_dispatch:
+
+# Concurrency lives on fetch-trending.yml (group "pages").
+# Do not set the same group on this caller: a nested workflow_call
+# that shares the caller's concurrency group can deadlock.
+
+permissions:
+  contents: read
+  issues: write
+  pages: write
+  id-token: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      stale: ${{ steps.age.outputs.stale }}
+      lastUpdated: ${{ steps.age.outputs.lastUpdated }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check lastUpdated age
+        id: age
+        run: |
+          python3 << 'PY'
+          import json, os
+          from datetime import datetime, timezone
+
+          with open("data/trending.json") as f:
+              last_s = json.load(f)["lastUpdated"]
+          last = datetime.fromisoformat(last_s.replace("Z", "+00:00"))
+          age_s = (datetime.now(timezone.utc) - last).total_seconds()
+          stale = "true" if age_s >= 2 * 3600 else "false"
+          print(f"lastUpdated={last_s} age_hours={age_s/3600:.2f} stale={stale}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"lastUpdated={last_s}\n")
+              out.write(f"stale={stale}\n")
+          PY
+
+  catch-up:
+    needs: check
+    if: needs.check.outputs.stale == 'true'
+    uses: ./.github/workflows/fetch-trending.yml
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+  notify:
+    needs: [check, catch-up]
+    if: always() && needs.check.result == 'success' && needs.check.outputs.stale == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Upsert or close stale-data issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREV_LAST: ${{ needs.check.outputs.lastUpdated }}
+          CATCHUP_RESULT: ${{ needs.catch-up.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          gh label create stale-data --color D93F0B --description "Trending data older than 2 hours" 2>/dev/null || true
+
+          AFTER=$(curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/data/trending.json" | python3 -c "import json,sys; print(json.load(sys.stdin)['lastUpdated'])")
+          export AFTER
+          RECOVERED=$(python3 -c "
+          from datetime import datetime, timezone
+          import os
+          last = datetime.fromisoformat(os.environ['AFTER'].replace('Z', '+00:00'))
+          fresh = (datetime.now(timezone.utc) - last).total_seconds() < 2 * 3600
+          print('true' if fresh and os.environ.get('CATCHUP_RESULT') == 'success' else 'false')
+          ")
+
+          TITLE='trending-hub stale data'
+          NUM=$(gh issue list --state all --search "in:title trending-hub stale data" --limit 20 --json number,title --jq '[.[] | select(.title=="trending-hub stale data") | .number] | first // empty')
+
+          BODY=$(printf '%s\n' \
+            "Watchdog 判定数据过期并尝试补跑。" \
+            "" \
+            "- lastUpdated（补跑前）: \`${PREV_LAST}\`" \
+            "- lastUpdated（补跑后）: \`${AFTER}\`" \
+            "- catch-up 结果: \`${CATCHUP_RESULT}\`" \
+            "- run: ${RUN_URL}")
+
+          if [ "$RECOVERED" = "true" ]; then
+            if [ -n "${NUM}" ]; then
+              gh issue close "$NUM" --comment "已恢复。lastUpdated=\`${AFTER}\`. run: ${RUN_URL}" || true
+            fi
+            exit 0
+          fi
+
+          if [ -z "${NUM}" ]; then
+            gh issue create --title "$TITLE" --label stale-data --body "$BODY"
+          else
+            gh issue reopen "$NUM" || true
+            gh issue edit "$NUM" --add-label stale-data || true
+            gh issue comment "$NUM" --body "$BODY"
+          fi
